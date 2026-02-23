@@ -21,27 +21,19 @@ A Raspberry Pi Zero W hidden inside a real SNES Jr shell, turning an original SN
 ## Button Map
 
 ```
-  ┌───┐                               ┌───┐
-  │ L │          SNES Jr               │ R │
-  │PgU│                                │PgD│
-  └───┘                                └───┘
-     ┌─────────────────────────────────────┐
-     │                                     │
-     │       ┌───┐                         │
-     │       │ ▲ │              ┌───┐      │
-     │   ┌───┼───┼───┐    ┌───┐│ X │      │
-     │   │ ◄ │   │ ► │    │ Y ││ 💡│      │
-     │   └───┼───┼───┘    │💡2│├───┤      │
-     │       │ ▼ │    SEL  └───┘│ A │      │
-     │       └───┘    MENU      │ OK│      │
-     │      D-PAD      START    └───┘      │
-     │       TV        ⏻ TV      TV        │
-     │                                     │
-     │              ┌───┐                  │
-     │              │ B │                  │
-     │              │ ◄─┘                  │
-     │              └───┘                  │
-     └─────────────────────────────────────┘
+    [L PgUp]                            [R PgDn]
+  .-----------------------------------------------.
+  |                                               |
+  |      .---.                         (X)        |
+  |      | ^ |                        Light1      |
+  |  .---+---+---.                                |
+  |  | < |   | > |  (SEL)  (STA)  (Y)     (A)    |
+  |  '---+---+---'  Menu   Power  Light2   OK     |
+  |      | v |                                    |
+  |      '---'                         (B)        |
+  |     TV Nav                         Back       |
+  |                                               |
+  '-----------------------------------------------'
 ```
 
 | Button | Function | Target |
@@ -130,8 +122,8 @@ snes_read.c              # Controller reader + MQTT + ADB FIFO (C)
 snes_adb_daemon.py       # ADB bridge daemon (Python)
 snes-controller.service  # Systemd unit for snes_read
 snes-adb.service         # Systemd unit for ADB daemon
-mqtt.md                  # MQTT broker config reference
-CLAUDE.md                # Dev context
+.env.example             # Credential template
+mqtt.md                  # MQTT topic reference
 diag/                    # GPIO/serial diagnostic scripts
   controller_read.py     #   Python controller reader (interrupt-driven)
   gpio_test.py           #   Live GPIO pin monitor
