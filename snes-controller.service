@@ -1,0 +1,17 @@
+[Unit]
+Description=SNES Controller MQTT Light Control
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=/home/wil/.env
+ExecStart=/home/wil/snes_read
+Restart=always
+RestartSec=5
+User=wil
+Group=wil
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

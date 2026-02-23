@@ -1,0 +1,7 @@
+.env
+CLAUDE.md
+*.o
+snes_read
+__pycache__/
+*.pyc
+.android/
