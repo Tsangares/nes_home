@@ -9,7 +9,9 @@ does, without interfering — and forwards button presses to smart lights over
 Press X to flip a lamp. Press the D-pad to scroll Netflix. Hold R to turn the TV
 off. The controller still works as a normal SNES controller the whole time.
 
-> 📷 See the [build gallery](images/) for the full teardown-to-assembly photo log.
+> 📷 See the [build gallery](images/) for the teardown-to-assembly photo log, and
+> the [build log](journals/) for the full write-up — the controller protocol, the
+> ghost-press bug hunt, and the cleanup.
 
 ![The Raspberry Pi Zero W and wiring tucked into the open SNES Jr shell beside the original motherboard.](images/11-2026-06-28-pi-mounted-snes-shell.jpg)
 
@@ -210,7 +212,8 @@ snes-controller.service  # systemd unit for snes_read
 snes-adb.service         # systemd unit for the ADB daemon
 .env.example             # Credential template (copy to .env)
 mqtt.md                  # MQTT topic reference
-images/                  # Build photos (add your own)
+images/                  # Build photo gallery (chronological)
+journals/                # Dated build-log write-ups + code snapshots
 diag/                    # GPIO/serial diagnostic scripts
   controller_read.py     #   Python controller reader (interrupt-driven)
   gpio_test.py           #   Live GPIO pin monitor
