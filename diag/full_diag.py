@@ -64,7 +64,7 @@ if total == 0:
     print("  1. SNES not actually running (needs a game cartridge inserted and powered on)")
     print("  2. Solder joints on SNES motherboard not making contact with traces")
     print("  3. Wires not actually reaching Pi header pins")
-    print("  4. Try: measure Clock pin on SNES side (before divider) with multimeter")
+    print("  4. Try: measure Clock pin on SNES side (before level shifter) with multimeter")
     print("     - Should see ~2.5V average if toggling (not static 0V or 5V)")
 
 GPIO.cleanup()

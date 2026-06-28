@@ -21,7 +21,7 @@ off. The controller still works as a normal SNES controller the whole time.
    │   │   SNES   │ (passive)│  Pi Zero W   │      │
    │   │Controller├──────────┤              │      │
    │   │ shift reg│  5V→3.3V  │  snes_read   │      │
-   │   └──────────┘  divider  │      │       │     │
+   │   └──────────┘  shifter  │      │       │     │
    │                          │      ├── MQTT ──────┼──► Smart plugs
    │                          │      │       │      │
    │                          │      └── ADB ───────┼──► Android TV
@@ -194,7 +194,7 @@ journalctl -u snes-controller -f
 journalctl -u snes-adb -f
 ```
 
-- **Phantom presses?** Check your common ground and the divider resistor values,
+- **Phantom presses?** Check your common ground and the level-shifter wiring,
   then bump `R_PRESS_FRAMES` / `PRESS_FRAMES` in `snes_read.c`.
 - **No events at all?** The console must be powered and polling — the Pi only
   reads, it never drives the bus.
