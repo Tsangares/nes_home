@@ -106,17 +106,16 @@ arming R, matching how every other button is debounced. Glitch gone.
 
 ## Wiring
 
-Passive tap from the controller's extension cable, each signal line through a
-1 kΩ / 2 kΩ divider to drop the SNES's 5 V logic to a GPIO-safe ~3.3 V:
+Passive tap from the controller's extension cable. Each signal line passes
+through a **bidirectional logic-level-shifter module** to drop the SNES's 5 V
+logic to a GPIO-safe 3.3 V (the high side ties to 5 V, the low side to the Pi's
+3.3 V rail):
 
 ```
-   SNES signal (5V)
-        │
-        ├──[ 1kΩ ]──┬──► Pi GPIO (≈3.3V)
-        │           │
-        │        [ 2kΩ ]
-        │           │
-        └───────────┴──► GND        Vout = 5V × 2k/(1k+2k) ≈ 3.33V
+  SNES 5V signal ──► [ HV ]  level     [ LV ] ──► Pi GPIO (3.3V)
+                              shifter
+       5V rail ───► HV-VCC   module    LV-VCC ◄─── Pi 3.3V rail
+          GND ────────────── common ─────────────── Pi GND
 ```
 
 | SNES Pin | Signal | Pi Header Pin | GPIO | Direction |
@@ -129,9 +128,9 @@ Passive tap from the controller's extension cable, each signal line through a
 > The Pi reads all three lines — the **console** drives Clock and Latch. Make
 > sure the Pi and SNES share a common ground or the readings will be garbage.
 
-The 5V→3.3V step-down can be done with discrete 1k/2k dividers (shown above) or
-a small bidirectional logic-level-shifter breakout — this build uses a level
-shifter module.
+> **Alternative:** discrete 1 kΩ / 2 kΩ resistor dividers per line
+> (`Vout = 5V × 2k/(1k+2k) ≈ 3.3V`) also work for a read-only tap; the module
+> is just tidier and handles all three lines on one board.
 
 ![Tap wires soldered to the underside of the SNES controller PCB.](images/14-2026-06-28-snes-controller-pcb.jpg)
 *Tap wires soldered to the controller PCB's Clock / Latch / Data traces.*
