@@ -9,8 +9,9 @@ does, without interfering — and forwards button presses to smart lights over
 Press X to flip a lamp. Press the D-pad to scroll Netflix. Hold R to turn the TV
 off. The controller still works as a normal SNES controller the whole time.
 
-> 📷 Build photos go in [`images/`](images/) — see that folder's README for the
-> shot list (controller PCB tap, voltage-divider board, Pi inside the shell).
+> 📷 See the [build gallery](images/) for the full teardown-to-assembly photo log.
+
+![The Raspberry Pi Zero W and wiring tucked into the open SNES Jr shell beside the original motherboard.](images/11-2026-06-28-pi-mounted-snes-shell.jpg)
 
 ```
    ┌──────────────────────────────────────────────┐
@@ -127,6 +128,16 @@ Passive tap from the controller's extension cable, each signal line through a
 
 > The Pi reads all three lines — the **console** drives Clock and Latch. Make
 > sure the Pi and SNES share a common ground or the readings will be garbage.
+
+The 5V→3.3V step-down can be done with discrete 1k/2k dividers (shown above) or
+a small bidirectional logic-level-shifter breakout — this build uses a level
+shifter module.
+
+![Tap wires soldered to the underside of the SNES controller PCB.](images/14-2026-06-28-snes-controller-pcb.jpg)
+*Tap wires soldered to the controller PCB's Clock / Latch / Data traces.*
+
+![The level-shifter module wired between the controller signals and the Pi GPIO.](images/13-2026-06-28-level-shifter-module.jpg)
+*The level-shifter module dropping the controller's 5V signals to 3.3V.*
 
 ## Setup
 
