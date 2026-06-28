@@ -1,15 +1,16 @@
+# Adjust User/Group and the /home/<user> paths to match your install.
 [Unit]
-Description=SNES Controller MQTT Light Control
+Description=SNES Controller -> MQTT + ADB reader
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-EnvironmentFile=/home/wil/.env
-ExecStart=/home/wil/snes_read
+EnvironmentFile=/home/pi/.env
+ExecStart=/home/pi/snes_read
 Restart=always
 RestartSec=5
-User=wil
-Group=wil
+User=pi
+Group=pi
 StandardOutput=journal
 StandardError=journal
 

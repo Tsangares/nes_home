@@ -1,26 +1,36 @@
-# MQTT Configuration
+# MQTT Reference
 
-Credentials are stored in `.env` (not committed to git).
+The two shoulder-adjacent face buttons (X and Y) toggle smart plugs over MQTT.
+All connection details live in `.env` (gitignored) and are read from the
+environment at runtime — nothing here is host-specific.
 
 ## Broker
 
-- **Host**: `$MQTT_HOST` (default `10.0.0.100`)
-- **Port**: `$MQTT_PORT` (default `1883`)
+| Setting | Env var | Example |
+|---------|---------|---------|
+| Host | `MQTT_HOST` | `192.0.2.10` |
+| Port | `MQTT_PORT` | `1883` |
+| User | `MQTT_USER` | — |
+| Password | `MQTT_PASS` | — |
 
 ## Devices
 
-### Light 1 (tasmota_952D74)
-- **Topic**: `cmnd/tasmota_952D74/POWER`
-- **Payloads**: `ON`, `OFF`
+These are [Tasmota](https://tasmota.github.io/docs/) smart plugs. Each one
+listens on a `cmnd/<device>/POWER` topic and accepts `ON` / `OFF` payloads.
 
-### Light 2 (tasmota_93D272)
-- **Topic**: `cmnd/tasmota_93D272/POWER`
-- **Payloads**: `ON`, `OFF`
+| Plug | Env var | Topic pattern |
+|------|---------|---------------|
+| Light 1 (button X) | `MQTT_TOPIC_LIGHT1` | `cmnd/<device_1>/POWER` |
+| Light 2 (button Y) | `MQTT_TOPIC_LIGHT2` | `cmnd/<device_2>/POWER` |
 
-## Testing
+Find your Tasmota device's topic under **Configuration → Configure MQTT** in
+its web UI (it defaults to `tasmota_XXXXXX`, derived from the chip's MAC).
+
+## Quick test
 
 ```bash
-source ~/.env
-mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASS" \
-  -t "cmnd/tasmota_952D74/POWER" -m "ON"
+source .env
+mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" \
+  -u "$MQTT_USER" -P "$MQTT_PASS" \
+  -t "$MQTT_TOPIC_LIGHT1" -m "ON"
 ```

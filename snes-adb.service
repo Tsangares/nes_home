@@ -1,15 +1,16 @@
+# Adjust User/Group and the /home/<user> paths to match your install.
 [Unit]
-Description=SNES ADB Daemon (Android TV remote)
+Description=SNES ADB Daemon (Android TV remote bridge)
 After=network-online.target snes-controller.service
 Wants=network-online.target
 
 [Service]
-EnvironmentFile=/home/wil/.env
-ExecStart=/usr/bin/python3 /home/wil/snes_adb_daemon.py
+EnvironmentFile=/home/pi/.env
+ExecStart=/usr/bin/python3 /home/pi/snes_adb_daemon.py
 Restart=always
 RestartSec=5
-User=wil
-Group=wil
+User=pi
+Group=pi
 StandardOutput=journal
 StandardError=journal
 

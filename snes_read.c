@@ -1,18 +1,27 @@
 /*
- * SNES controller passive reader + MQTT light control + ADB TV remote.
- * Simple state machine: debounce press → fire → cooldown → wait for release.
+ * SNES controller passive reader -> MQTT lights + ADB Android TV remote.
  *
- * X      = toggle light 1 (tasmota_952D74)
- * Y      = toggle light 2 (tasmota_93D272)
- * UP/DOWN/LEFT/RIGHT = DPAD navigation on Android TV
- * A      = ENTER (select)
- * B      = BACK
- * START  = POWER (toggle TV on/off)
- * SELECT = MENU
- * L      = PAGE_UP
- * R      = PAGE_DOWN
+ * The Pi sits on the SNES controller's serial bus and listens. The console
+ * drives Latch and Clock; we read the Data line on each clock edge and
+ * reconstruct the 12-button state. Each button runs a small state machine
+ * (debounce press -> fire -> cooldown -> wait for release) so a single noisy
+ * frame can't register as a press.
  *
- * GPIO 17 = Clock, GPIO 27 = Latch, GPIO 22 = Data
+ * Button map:
+ *   X       = toggle smart plug 1 (MQTT)
+ *   Y       = toggle smart plug 2 (MQTT)
+ *   D-pad   = navigate (Up/Down/Left/Right) on Android TV
+ *   A       = Enter / select
+ *   B       = Back
+ *   Select  = Menu
+ *   L       = Page Up
+ *   R tap   = Page Down
+ *   R hold 3s = TV power toggle
+ *
+ * Topics, credentials, and the TV address all come from the environment
+ * (see .env.example) -- nothing host-specific is baked in here.
+ *
+ * GPIO 17 = Clock, GPIO 27 = Latch, GPIO 22 = Data (all read-only / passive)
  * Compile: gcc -O2 -o snes_read snes_read.c
  */
 #include <stdio.h>
@@ -37,6 +46,8 @@
 #define PRESS_FRAMES 4       /* consecutive pressed frames to trigger */
 #define RELEASE_FRAMES 4     /* consecutive released frames to re-arm */
 #define COOLDOWN_MS 400      /* ignore button for this long after firing */
+#define R_HOLD_MS   3000     /* R must be held this long to fire TV power */
+#define R_PRESS_FRAMES 4     /* consecutive pressed frames before R arms (debounce) */
 
 static volatile unsigned *gpio;
 static volatile int running = 1;
@@ -58,6 +69,7 @@ static int light2_on = 0;
 static FILE *adb_fifo = NULL;
 
 enum state { IDLE, COOLDOWN, WAIT_RELEASE };
+enum r_hold_state { RH_IDLE, RH_HELD, RH_FIRED };
 
 static inline int gpio_read(int pin) {
     return (*(gpio + GPLEV0) >> pin) & 1;
@@ -113,7 +125,7 @@ static const char *adb_keymap[NUM_BUTTONS] = {
     /* B */      "KEYCODE_BACK",
     /* Y */      NULL,
     /* SELECT */ "KEYCODE_MENU",
-    /* START */  "KEYCODE_TV_POWER",
+    /* START */  NULL,
     /* UP */     "KEYCODE_DPAD_UP",
     /* DOWN */   "KEYCODE_DPAD_DOWN",
     /* LEFT */   "KEYCODE_DPAD_LEFT",
@@ -179,10 +191,16 @@ int main(void) {
         cooldown_end[i] = 0;
     }
 
+    /* R hold state */
+    enum r_hold_state rh_state = RH_IDLE;
+    long long rh_hold_start = 0;
+    int rh_press_count = 0;
+
     printf("SNES controller → lights + Android TV (via ADB daemon)\n");
-    printf("  X/Y    = toggle lights\n");
-    printf("  D-pad/A/B/L/R/Select = TV navigation\n");
-    printf("  Start  = TV power\n");
+    printf("  X/Y        = toggle lights\n");
+    printf("  D-pad/A/B/Select/L = TV navigation\n");
+    printf("  R tap      = page down\n");
+    printf("  R (3s hold) = TV power\n");
     printf("Ctrl+C to stop.\n\n");
     fflush(stdout);
 
@@ -202,7 +220,49 @@ int main(void) {
 
         long long t = now_ms();
 
+        /* --- R 3-second hold for TV power --- */
+        int r_pressed = (bits[BTN_R] == 0);
+
+        switch (rh_state) {
+        case RH_IDLE:
+            /* Debounce: require R_PRESS_FRAMES consecutive pressed frames
+             * before arming. A single-frame glitch on the last shift bit
+             * was firing phantom PAGE_DOWN events. */
+            if (r_pressed) {
+                rh_press_count++;
+                if (rh_press_count >= R_PRESS_FRAMES) {
+                    rh_state = RH_HELD;
+                    rh_hold_start = t;
+                    rh_press_count = 0;
+                }
+            } else {
+                rh_press_count = 0;
+            }
+            break;
+        case RH_HELD:
+            if (!r_pressed) {
+                /* Released before 3s: fire PAGE_DOWN */
+                adb_keyevent("KEYCODE_PAGE_DOWN");
+                printf("R tap → KEYCODE_PAGE_DOWN\n");
+                fflush(stdout);
+                rh_state = RH_IDLE;
+            } else if (t - rh_hold_start >= R_HOLD_MS) {
+                adb_keyevent("KEYCODE_POWER");
+                printf("R held 3s → KEYCODE_POWER\n");
+                fflush(stdout);
+                rh_state = RH_FIRED;
+            }
+            break;
+        case RH_FIRED:
+            if (!r_pressed) rh_state = RH_IDLE;
+            break;
+        }
+
+        /* --- Per-button state machines --- */
         for (int i = 0; i < NUM_BUTTONS; i++) {
+            /* R is fully handled by the hold state machine above */
+            if (i == BTN_R) continue;
+
             int pressed = (bits[i] == 0);
 
             switch (state[i]) {

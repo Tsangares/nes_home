@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
-ADB daemon for SNES controller.
-Reads keycode names from a FIFO written by snes_read (C program)
-and forwards them to the Android TV via adb-shell (pure Python, no binary needed).
+ADB bridge daemon for the SNES smart remote.
+
+Reads keycode names from a FIFO written by snes_read (the C reader) and
+forwards them to an Android TV over a persistent ADB-over-TCP connection.
+We use adb-shell (pure Python) because the stock `adb` binary has no ARMv6
+build for the Pi Zero W.
 
 FIFO: /tmp/snes_adb
-TV:   10.0.0.169:5555
+TV:   set ADB_TV_IP / ADB_TV_PORT in the environment (see .env.example)
 """
 import os
 import sys
@@ -15,7 +18,7 @@ from adb_shell.adb_device import AdbDeviceTcp
 from adb_shell.auth.sign_pythonrsa import PythonRSASigner
 
 FIFO_PATH = "/tmp/snes_adb"
-TV_IP = os.environ.get("ADB_TV_IP", "10.0.0.169")
+TV_IP = os.environ.get("ADB_TV_IP", "192.0.2.20")
 TV_PORT = int(os.environ.get("ADB_TV_PORT", "5555"))
 ADB_KEY = os.path.expanduser("~/.android/adbkey")
 
